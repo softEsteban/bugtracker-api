@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from './user.model';
+import { UsersService } from './services/users.service';
+import { UsersController } from './controllers/users.controller';
+import { HttpModule } from '@nestjs/axios';
+import { UtilitiesModule } from '../module-utilities/utilities.module';
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: 'User', schema: UserSchema }])],
+    imports: [HttpModule, UtilitiesModule],
     providers: [UsersService],
     controllers: [UsersController]
 })
