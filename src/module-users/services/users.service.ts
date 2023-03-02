@@ -16,7 +16,7 @@ export class UsersService {
         const method = this.contextClass + "getAllUsers";
         try {
             let result = this.uSql.makeQuery(`SELECT * FROM sch_generic.tb_user`, [])
-            return result;
+            return { "result": "success", "data": result, "message": "All users retrieved" };
         } catch (e) {
             console.log("Exception at: " + method);
 

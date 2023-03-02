@@ -2,8 +2,8 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { UtilitiesModule } from '../module-utilities/utilities.module';
-import { LoginController } from './controllers/login.controller';
-import { LoginService } from './services/login.service';
+import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/auth.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 
@@ -20,7 +20,7 @@ import { PassportModule } from '@nestjs/passport';
             inject: [ConfigService],
         }),
         PassportModule],
-    providers: [LoginService],
-    controllers: [LoginController]
+    providers: [AuthService],
+    controllers: [AuthController]
 })
 export class AuthModule { }
