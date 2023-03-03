@@ -64,7 +64,10 @@ export class AuthService {
         try {
             // Get user by email
             const user = await this.uSql.makeQuery(
-                `SELECT use_code, use_email, use_pass FROM sch_generic.tb_user WHERE use_email = $1`,
+                `SELECT tuser.use_code, tuser.use_email, tuser.use_pass, tpro.pro_config 
+                FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
+                WHERE tuser.pro_code = tpro.pro_code 
+                AND use_email = $1`,
                 [use_email]
             );
 
