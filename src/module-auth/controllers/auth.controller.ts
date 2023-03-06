@@ -9,15 +9,15 @@ export class AuthController {
     constructor(private authService: AuthService) { }
 
     @Get('login/:use_email/:use_pass')
-    @ApiOperation({ summary: 'Logins to Mantis' })
+    @ApiOperation({ summary: 'Logins with Mantis' })
     login(@Param('use_email') use_email: string, @Param('use_pass') use_pass: string) {
         return this.authService.login(use_email, use_pass);
     }
 
-    @Get('getGithubToken/:code')
-    @ApiOperation({ summary: 'Gets Github token authentication' })
-    getGithubToken(@Param('code') code: string) {
-        return this.authService.getGithubToken(code);
+    @Get('loginWithGithub/:code')
+    @ApiOperation({ summary: 'Logins with Github' })
+    loginWithGithub(@Param('code') code: string) {
+        return this.authService.loginWithGithub(code);
     }
 
     @Post('register')

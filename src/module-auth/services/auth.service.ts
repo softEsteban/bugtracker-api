@@ -27,7 +27,9 @@ export class AuthService {
      * @returns The token
      * @author Esteban Toro
      */
-    async getGithubToken(code: string) {
+    async loginWithGithub(code: string) {
+        const method = this.contextClass + 'loginWithGithub';
+
         try {
             const obj = {
                 client_id: this.client_id,
@@ -35,7 +37,30 @@ export class AuthService {
                 code: code
             }
             let result = await this.uRequest.makeRequest("https://github.com/login/oauth/access_token", 'post', obj)
-            return querystring.parse(result);
+            let jsonRes = querystring.parse(result);
+
+            if (!jsonRes.access_token) {
+                return {
+                    result: 'fail',
+                    message: `Couldn't get the token`,
+                };
+            }
+
+            // Gets Github user data
+            let userData = await this.uRequest.makeRequest("https://api.github.com/user", "get", "", { "Authorization": `token ${jsonRes.access_token}` });
+            let user = {
+                github_id: userData.id,
+                github_token: jsonRes.access_token,
+                login: userData.login,
+                avatar_url: userData.avatar_url,
+                name: userData.name,
+                email: userData.email
+            }
+            return {
+                result: 'success',
+                data: user,
+                message: 'User has login',
+            };
         } catch (e) {
             console.log("Exception at: getGithubToken")
         }
