@@ -48,18 +48,40 @@ export class AuthService {
 
             // Gets Github user data
             let userData = await this.uRequest.makeRequest("https://api.github.com/user", "get", "", { "Authorization": `token ${jsonRes.access_token}` });
+            let userEmails = await this.uRequest.makeRequest("https://api.github.com/user/emails", "get", "", { "Authorization": `token ${jsonRes.access_token}` });
+
+            let email = userEmails[1]["email"];
             let user = {
                 github_id: userData.id,
                 github_token: jsonRes.access_token,
                 login: userData.login,
                 avatar_url: userData.avatar_url,
                 name: userData.name,
-                email: userData.email
+                email: email
             }
+
+            //Validates if github login is in database
+            const userGithub = await this.uSql.makeQuery(
+                `SELECT tuser.use_code, tuser.use_email, tuser.use_pass, tpro.pro_config 
+                FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
+                WHERE tuser.pro_code = tpro.pro_code 
+                AND use_github = $1`,
+                [user.login]
+            );
+
+            if (!userGithub.length) {
+                return {
+                    result: 'success',
+                    message: "The given user isn't register in Mantis",
+                };
+            }
+
+            //Adds token
+            userGithub[0].token = this.generateToken(userGithub[0].use_email);
             return {
                 result: 'success',
-                data: user,
-                message: 'User has login',
+                data: userGithub[0],
+                message: 'User has login with Github',
             };
         } catch (e) {
             console.log("Exception at: getGithubToken")
@@ -110,7 +132,7 @@ export class AuthService {
             }
 
             // Generate token
-            user[0].token = this.generateToken('use_code');
+            user[0].token = this.generateToken(user[0].use_code);
 
             return {
                 result: 'success',
@@ -212,7 +234,7 @@ export class AuthService {
             );
 
             // Generate new token
-            updatedUser[0].token = this.generateToken('use_code');
+            updatedUser[0].token = this.generateToken(use_email);
 
             return {
                 result: 'success',
