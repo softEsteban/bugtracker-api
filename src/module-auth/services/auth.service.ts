@@ -5,6 +5,15 @@ import { ConfigService } from '@nestjs/config';
 import { USQL } from '../../module-utilities/usql';
 import * as querystring from 'querystring';
 import * as bcrypt from 'bcrypt';
+import { IsNotEmpty, validate } from 'class-validator';
+
+export class LoginDto {
+    @IsNotEmpty()
+    use_email: string;
+
+    @IsNotEmpty()
+    use_pass: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -62,7 +71,9 @@ export class AuthService {
 
             //Validates if github login is in database
             const userGithub = await this.uSql.makeQuery(
-                `SELECT tuser.use_code, tuser.use_email, tuser.use_pass, tpro.pro_config 
+                `SELECT tuser.use_code, tuser.use_name, tuser.use_lastname, 
+                tuser.use_type, tuser.use_github, tuser.use_email, 
+                tpro.pro_config  
                 FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
                 WHERE tuser.pro_code = tpro.pro_code 
                 AND use_github = $1`,
@@ -105,19 +116,30 @@ export class AuthService {
      * @returns The generated token
      * @author Esteban Toro
      */
-    async login(use_email: string, use_pass: string) {
+    async login(loginDto: LoginDto) {
         const method = this.contextClass + 'login';
 
         try {
+            // Validate loginDto
+            const errors = await validate(loginDto);
+            if (errors.length > 0) {
+                return {
+                    result: 'fail',
+                    message: 'Validation failed',
+                    data: errors,
+                };
+            }
+
             // Get user by email
             const user = await this.uSql.makeQuery(
-                `SELECT tuser.use_code, tuser.use_email, tuser.use_pass, tpro.pro_config 
-                FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
-                WHERE tuser.pro_code = tpro.pro_code 
-                AND use_email = $1`,
-                [use_email]
+                `SELECT tuser.use_code, tuser.use_name, tuser.use_lastname, 
+            tuser.use_type, tuser.use_github, tuser.use_email, tuser.use_pass,
+            tpro.pro_config  
+            FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
+            WHERE tuser.pro_code = tpro.pro_code 
+            AND use_email = $1`,
+                [loginDto.use_email]
             );
-
             if (!user.length) {
                 return {
                     result: 'success',
@@ -126,13 +148,14 @@ export class AuthService {
             }
 
             // Compare password
-            const match = await bcrypt.compare(use_pass, user[0].use_pass);
+            const match = await bcrypt.compare(loginDto.use_pass, user[0].use_pass);
             if (!match) {
                 return { result: 'success', message: 'User password is incorrect' };
             }
 
             // Generate token
             user[0].token = this.generateToken(user[0].use_code);
+            delete user.use_pass;
 
             return {
                 result: 'success',

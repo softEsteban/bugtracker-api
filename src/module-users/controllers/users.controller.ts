@@ -1,7 +1,9 @@
-import { Controller, Param, Post, Get } from '@nestjs/common';
+import { Controller, Param, Post, Put, Get, Body } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { ApiTags } from '@nestjs/swagger';
+import { CreateUser } from '../dtos/create.user.dto';
+import { UpdateUser } from '../dtos/update.user.dto';
 // import { JwtAuthGuard } from '../../module-auth/jwt.auth.guard.service';
 
 // @UseGuards(JwtAuthGuard)
@@ -11,15 +13,21 @@ export class UsersController {
 
     constructor(private usersService: UsersService) { }
 
-    @Post('/createUser')
-    @ApiOperation({ summary: 'Creates a new user' })
-    async registerUser() {
-        return;
-    }
-
     @Get('/getAllUsers')
-    @ApiOperation({ summary: 'Get sall users' })
+    @ApiOperation({ summary: 'Gets all users' })
     async getAllUsers() {
         return this.usersService.getAllUsers();
+    }
+
+    @Post('/createUser')
+    @ApiOperation({ summary: 'Creates a new user' })
+    async createUser(@Body() createUser: CreateUser) {
+        return this.usersService.createUser(createUser);
+    }
+
+    @Put('/updateUser/:userId')
+    @ApiOperation({ summary: 'Creates a new user' })
+    async updateUser(@Param('userId') userId: number, @Body() updateUser: UpdateUser) {
+        return this.usersService.updateUser(userId, updateUser);
     }
 }

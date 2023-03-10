@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthService } from '../services/auth.service';
+import { AuthService, LoginDto } from '../services/auth.service';
 
 @ApiTags('Login Service')
 @Controller('auth')
@@ -8,10 +8,10 @@ export class AuthController {
 
     constructor(private authService: AuthService) { }
 
-    @Get('login/:use_email/:use_pass')
+    @Post('login/')
     @ApiOperation({ summary: 'Logins with Mantis' })
-    login(@Param('use_email') use_email: string, @Param('use_pass') use_pass: string) {
-        return this.authService.login(use_email, use_pass);
+    login(@Body() loginDto: LoginDto) {
+        return this.authService.login(loginDto);
     }
 
     @Get('loginWithGithub/:code')
