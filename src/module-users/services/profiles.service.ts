@@ -23,13 +23,10 @@ export class ProfilesService {
                     message: "No profiles were found",
                 };
             }
-
             return { result: "success", data: profiles, message: "All profiles retrieved" };
         } catch (e) {
             console.log("Exception at: " + method);
-
         }
     }
-
 
 }
