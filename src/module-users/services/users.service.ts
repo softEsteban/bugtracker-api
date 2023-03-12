@@ -3,7 +3,6 @@ import { validate } from 'class-validator';
 import { CreateUser } from 'src/module-users/dtos/create.user.dto';
 import { USQL } from 'src/module-utilities/usql';
 import * as bcrypt from 'bcrypt';
-import { User } from '../user.dto';
 import { UpdateUser } from '../dtos/update.user.dto';
 
 
@@ -41,7 +40,7 @@ export class UsersService {
         }
     }
 
-    async createUser(createUser: CreateUser): Promise<User> {
+    async createUser(createUser: CreateUser) {
         const method = `${this.contextClass}.createUser`;
 
         try {
@@ -71,7 +70,7 @@ export class UsersService {
             `;
             const params = [createUser.use_email, createUser.use_name, createUser.use_type, hashedPassword, createUser.use_github];
             const result = await this.uSql.makeQuery(query, params);
-            const createdUser: User = result[0];
+            const createdUser = result[0];
 
             return createdUser;
         } catch (error) {
@@ -79,7 +78,7 @@ export class UsersService {
         }
     }
 
-    async updateUser(userId: number, updateUser: UpdateUser): Promise<User> {
+    async updateUser(userId: number, updateUser: UpdateUser) {
         const method = `${this.contextClass}.updateUser`;
 
         try {
@@ -147,7 +146,7 @@ export class UsersService {
                 RETURNING use_code, use_email, use_name, use_type, use_github
             `;
             const result = await this.uSql.makeQuery(query, params);
-            const updatedUser: User = result[0];
+            const updatedUser = result[0];
 
             return updatedUser;
         } catch (error) {
