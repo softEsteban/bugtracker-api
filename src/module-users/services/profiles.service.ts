@@ -15,7 +15,9 @@ export class ProfilesService {
     async getAllProfiles() {
         const method = this.contextClass + "getAllProfiles";
         try {
-            let profiles = await this.uSql.makeQuery(`SELECT pro_code, pro_name FROM sch_generic.tb_profile`, [])
+            let profiles = await this.uSql.makeQuery(`SELECT pro_code, pro_name, string_agg(elem->>'title', ', ') profiles
+                                                      FROM sch_generic.tb_profile, jsonb_array_elements(pro_config) elem
+                                                      GROUP BY 1`, [])
 
             if (!profiles.length) {
                 return {
