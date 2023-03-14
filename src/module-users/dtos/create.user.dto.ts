@@ -44,4 +44,18 @@ export class CreateUser {
         required: false,
     })
     use_pass?: string;
+
+    @IsNotEmpty()
+    @ApiProperty({
+        description: "The user's profile configuration",
+        required: false,
+    })
+    pro_code?: string;
+
+    @IsNotEmpty()
+    @ApiProperty({
+        description: "The user's company or organization",
+        required: false,
+    })
+    cop_code: string;
 }

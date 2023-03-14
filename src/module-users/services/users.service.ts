@@ -4,6 +4,7 @@ import { CreateUser } from 'src/module-users/dtos/create.user.dto';
 import { USQL } from 'src/module-utilities/usql';
 import * as bcrypt from 'bcrypt';
 import { UpdateUser } from '../dtos/update.user.dto';
+import { create } from 'domain';
 
 
 @Injectable()
@@ -49,11 +50,17 @@ export class UsersService {
             if (errors.length > 0) {
                 throw new BadRequestException(`Validation failed: ${errors}`);
             }
-
             // Check if user email or GitHub already exists in the database
-            const existingUser = await this.uSql.makeQuery(
-                `SELECT use_code FROM sch_generic.tb_user WHERE use_email = $1 OR use_github = $2`,
-                [createUser.use_email, createUser.use_github]
+            let existingUser;
+            if (createUser.use_type == "Developer") {
+                existingUser = await this.uSql.makeQuery(
+                    `SELECT * FROM sch_generic.tb_user WHERE use_email = $1 OR use_github = $2`,
+                    [createUser.use_email, createUser.use_github]
+                );
+            }
+            existingUser = await this.uSql.makeQuery(
+                `SELECT use_code FROM sch_generic.tb_user WHERE use_email = $1`,
+                [createUser.use_email]
             );
             if (existingUser.length > 0) {
                 throw new ConflictException('User with same email or GitHub account already exists');
@@ -64,15 +71,16 @@ export class UsersService {
 
             // Perform database insert and return created user
             const query = `
-            INSERT INTO sch_generic.tb_user (use_email, use_name, use_type, use_pass, use_github, use_datins) 
-            VALUES ($1, $2, $3, $4, $5, NOW())
-            RETURNING use_code, use_email, use_name, use_type, use_github
+            INSERT INTO sch_generic.tb_user (use_email, use_name, use_type, use_pass, use_github, use_datins, pro_code, cop_code) 
+            VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7)
+            RETURNING use_code, use_email, use_name, use_type, use_github, pro_code, cop_code
             `;
-            const params = [createUser.use_email, createUser.use_name, createUser.use_type, hashedPassword, createUser.use_github];
+            const params = [createUser.use_email, createUser.use_name, createUser.use_type, hashedPassword,
+            createUser.use_github, createUser.pro_code, createUser.cop_code];
             const result = await this.uSql.makeQuery(query, params);
             const createdUser = result[0];
 
-            return createdUser;
+            return { result: "success", message: "User has been created", data: createdUser };
         } catch (error) {
             throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }
