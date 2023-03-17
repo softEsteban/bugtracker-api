@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
 import { UtilitiesModule } from './module-utilities/utilities.module';
 import { AuthModule } from './module-auth/auth.module';
+import { DomainsModule } from './module-domains/domains.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { AuthModule } from './module-auth/auth.module';
     ConfigModule.forRoot({ isGlobal: true }),
     UsersModule,
     UtilitiesModule,
-    AuthModule],
+    AuthModule,
+    DomainsModule],
   controllers: [AppController],
   providers: [AppService],
 })

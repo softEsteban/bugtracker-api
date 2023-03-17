@@ -20,12 +20,15 @@ export class UsersService {
     async getAllUsers() {
         const method = this.contextClass + "getAllUsers";
         try {
-            let users = await this.uSql.makeQuery(`SELECT use_code, use_email, use_name, 
-                                                    use_lastname, use_type, use_pic, use_github,
-                                                    TO_CHAR(use_datins, 'DD Mon YYYY HH:mm PM') use_datfor,
-                                                    use_datins
-                                                    FROM sch_generic.tb_user
-                                                    ORDER BY use_datins DESC`, [])
+            let users = await this.uSql.makeQuery(`
+            SELECT tuser.use_code, tuser.use_email, tuser.use_name, 
+            tuser.use_lastname, tuser.use_type, tuser.use_pic, tuser.use_github,
+            TO_CHAR(tuser.use_datins, 'DD Mon YYYY HH:mm PM') use_datfor,
+            tuser.use_datins, tcop.cop_name
+            FROM sch_generic.tb_user tuser,
+            sch_domains.tb_company tcop
+            WHERE tuser.cop_code = tcop.cop_code
+            ORDER BY use_datins DESC`, [])
 
             if (!users.length) {
                 return {
