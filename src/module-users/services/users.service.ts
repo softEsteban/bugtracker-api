@@ -51,23 +51,35 @@ export class UsersService {
             // Perform input validation using class-validator decorators
             const errors = await validate(createUser);
             if (errors.length > 0) {
-                throw new BadRequestException(`Validation failed: ${errors}`);
+                return { result: "success", message: "Some values are not correct or are missing", data: "" };
             }
+
             // Check if user email or GitHub already exists in the database
-            let existingUser;
-            if (createUser.use_type == "Developer") {
-                existingUser = await this.uSql.makeQuery(
-                    `SELECT * FROM sch_generic.tb_user WHERE use_email = $1 OR use_github = $2`,
-                    [createUser.use_email, createUser.use_github]
-                );
-            }
-            existingUser = await this.uSql.makeQuery(
+            const existingUserWithEmail = await this.uSql.makeQuery(
                 `SELECT use_code FROM sch_generic.tb_user WHERE use_email = $1`,
                 [createUser.use_email]
             );
-            if (existingUser.length > 0) {
-                throw new ConflictException('User with same email or GitHub account already exists');
+
+            if (existingUserWithEmail.length > 0) {
+                return { result: "success", message: "A user with this email already exists", data: "" };
             }
+
+            if (createUser.use_type == "Developer") {
+                const existingUserWithGitHub = await this.uSql.makeQuery(
+                    `SELECT use_code FROM sch_generic.tb_user WHERE use_github = $1`,
+                    [createUser.use_github]
+                );
+
+                if (existingUserWithGitHub.length > 0) {
+                    return { result: "success", message: "A user with this GitHub account already exists", data: "" };
+                }
+            }
+
+
+
+
+
+
 
             // Hash user password using bcrypt
             const hashedPassword = await bcrypt.hash(createUser.use_pass, 10);
