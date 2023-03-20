@@ -75,23 +75,17 @@ export class UsersService {
                 }
             }
 
-
-
-
-
-
-
             // Hash user password using bcrypt
             const hashedPassword = await bcrypt.hash(createUser.use_pass, 10);
 
             // Perform database insert and return created user
             const query = `
             INSERT INTO sch_generic.tb_user (use_email, use_name, use_type, use_pass, use_github, use_datins, pro_code, cop_code) 
-            VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7)
-            RETURNING use_code, use_email, use_name, use_type, use_github, pro_code, cop_code
+            VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7) RETURNING use_code, use_email, use_name, use_type, use_github, pro_code, cop_code
             `;
             const params = [createUser.use_email, createUser.use_name, createUser.use_type, hashedPassword,
             createUser.use_github, createUser.pro_code, createUser.cop_code];
+
             const result = await this.uSql.makeQuery(query, params);
             const createdUser = result[0];
 

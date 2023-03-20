@@ -8,6 +8,7 @@ import { HttpModule } from '@nestjs/axios';
 import { UtilitiesModule } from './module-utilities/utilities.module';
 import { AuthModule } from './module-auth/auth.module';
 import { DomainsModule } from './module-domains/domains.module';
+import { ProjectsModule } from './module-projects/projects.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { DomainsModule } from './module-domains/domains.module';
     UsersModule,
     UtilitiesModule,
     AuthModule,
-    DomainsModule],
+    DomainsModule,
+    ProjectsModule],
   controllers: [AppController],
   providers: [AppService],
 })
