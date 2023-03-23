@@ -71,15 +71,15 @@ export class ProjectsService {
             //Adds users
             let users = createProject.pro_users as { use_code: string, use_name: string }[];
             if (users.length > 0) {
-                let useCodes = users.map(user => user.use_code); // Extract the use_code values
+                let useCodes = users.map(user => user.use_code);
                 let useCodeString = useCodes.join(',');
 
                 const query2 = `
-                SELECT sch_projects.fun_add_users_to_project($1, $2);`;
+                SELECT sch_projects.fun_add_users_to_project($1, $2) AS add_result;`;
                 const params2 = [useCodeString, createdProject.pro_code];
                 const result2 = await this.uSql.makeQuery(query2, params2);
 
-                if (!result2[0]["fun_add_users_to_project"]) {
+                if (!result2[0]["add_result"]) {
                     return {
                         result: 'fail',
                         message: "Couldn't add the users",
