@@ -21,14 +21,18 @@ export class UsersService {
         const method = this.contextClass + "getAllUsers";
         try {
             let users = await this.uSql.makeQuery(`
-            SELECT tuser.use_code, tuser.use_email, tuser.use_name, 
-            tuser.use_lastname, tuser.use_type, tuser.use_pic, tuser.use_github,
+            SELECT 
+            tuser.use_code, tuser.use_email, tuser.use_name, tuser.cop_code, 
+            tuser.pro_code, tuser.use_lastname, tuser.use_type, tuser.use_pic, tuser.use_github,
             TO_CHAR(tuser.use_datins, 'DD Mon YYYY HH:mm PM') use_datfor,
             tuser.use_datins, tcop.cop_name, 
             COALESCE(sch_projects.fun_get_projects_by_user(tuser.use_code), '[]') AS use_projects
+
             FROM sch_generic.tb_user tuser,
-            sch_domains.tb_company tcop
+                 sch_domains.tb_company tcop
+
             WHERE tuser.cop_code = tcop.cop_code
+
             ORDER BY use_datins DESC`, [])
 
             if (!users.length) {
