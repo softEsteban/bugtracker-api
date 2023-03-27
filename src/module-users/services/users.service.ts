@@ -119,21 +119,6 @@ export class UsersService {
                 throw new NotFoundException(`User with id ${userId} not found`);
             }
 
-            // Check if updated user email or GitHub already exists in the database
-            const userWithEmailOrGithub = await this.uSql.makeQuery(
-                `SELECT use_code FROM sch_generic.tb_user WHERE (use_email = $1 OR use_github = $2) AND use_code != $3`,
-                [updateUser.use_email, updateUser.use_github, userId]
-            );
-            if (userWithEmailOrGithub.length > 0) {
-                throw new ConflictException('User with same email or GitHub account already exists');
-            }
-
-            // Hash updated user password using bcrypt
-            let hashedPassword;
-            if (updateUser.use_pass) {
-                hashedPassword = await bcrypt.hash(updateUser.use_pass, 10);
-            }
-
             // Update user record in the database
             const setClauses = [];
             const params = [];
@@ -148,10 +133,6 @@ export class UsersService {
             if (updateUser.use_type) {
                 setClauses.push(`use_type = $${setClauses.length + 1}`);
                 params.push(updateUser.use_type);
-            }
-            if (hashedPassword) {
-                setClauses.push(`use_pass = $${setClauses.length + 1}`);
-                params.push(hashedPassword);
             }
             if (updateUser.use_github) {
                 setClauses.push(`use_github = $${setClauses.length + 1}`);
@@ -170,7 +151,7 @@ export class UsersService {
             const result = await this.uSql.makeQuery(query, params);
             const updatedUser = result[0];
 
-            return updatedUser;
+            return { result: "success", message: "User has been updated!", data: updatedUser };
         } catch (error) {
             throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }

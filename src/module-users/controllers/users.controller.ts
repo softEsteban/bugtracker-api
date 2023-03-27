@@ -26,7 +26,7 @@ export class UsersController {
     }
 
     @Put('/updateUser/:userId')
-    @ApiOperation({ summary: 'Creates a new user' })
+    @ApiOperation({ summary: 'Updates a new user' })
     async updateUser(@Param('userId') userId: number, @Body() updateUser: UpdateUser) {
         return this.usersService.updateUser(userId, updateUser);
     }
