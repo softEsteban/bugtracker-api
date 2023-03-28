@@ -43,4 +43,11 @@ export class UpdateUser {
         default: UserType.USER,
     })
     use_type?: UserType;
+
+    @IsEnum(UserType)
+    @IsOptional()
+    @ApiProperty({
+        description: "The user's profile config",
+    })
+    pro_code?: string;
 }

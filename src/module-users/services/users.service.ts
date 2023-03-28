@@ -130,9 +130,17 @@ export class UsersService {
                 setClauses.push(`use_name = $${setClauses.length + 1}`);
                 params.push(updateUser.use_name);
             }
+            if (updateUser.use_lastname) {
+                setClauses.push(`use_lastname = $${setClauses.length + 1}`);
+                params.push(updateUser.use_lastname);
+            }
             if (updateUser.use_type) {
                 setClauses.push(`use_type = $${setClauses.length + 1}`);
                 params.push(updateUser.use_type);
+            }
+            if (updateUser.pro_code) {
+                setClauses.push(`pro_code = $${setClauses.length + 1}`);
+                params.push(updateUser.pro_code);
             }
             if (updateUser.use_github) {
                 setClauses.push(`use_github = $${setClauses.length + 1}`);
@@ -146,7 +154,7 @@ export class UsersService {
                 UPDATE sch_generic.tb_user
                 SET ${setClauses.join(', ')}, use_datupd = NOW()
                 WHERE use_code = $${params.length}
-                RETURNING use_code, use_email, use_name, use_type, use_github
+                RETURNING use_code, use_email, use_name, use_lastname, use_type, pro_code, use_github
             `;
             const result = await this.uSql.makeQuery(query, params);
             const updatedUser = result[0];

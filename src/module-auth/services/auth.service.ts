@@ -72,13 +72,15 @@ export class AuthService {
             //Validates if github login is in database
             const userGithub = await this.uSql.makeQuery(
                 `SELECT tuser.use_code, tuser.use_name, tuser.use_lastname, 
-                tuser.use_type, tuser.use_github, tuser.use_email, 
+                tuser.use_type, tuser.use_github, tuser.use_email,
                 tpro.pro_config  
                 FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
                 WHERE tuser.pro_code = tpro.pro_code 
                 AND use_github = $1`,
                 [user.login]
             );
+
+            userGithub["use_pic"] = user.avatar_url;
 
             if (!userGithub.length) {
                 return {
@@ -133,7 +135,7 @@ export class AuthService {
             // Get user by email
             const user = await this.uSql.makeQuery(
                 `SELECT tuser.use_code, tuser.use_name, tuser.use_lastname, 
-            tuser.use_type, tuser.use_github, tuser.use_email, tuser.use_pass,
+            tuser.use_type, tuser.use_github, tuser.use_email, tuser.use_pic, tuser.use_pass,
             tpro.pro_config  
             FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
             WHERE tuser.pro_code = tpro.pro_code 
