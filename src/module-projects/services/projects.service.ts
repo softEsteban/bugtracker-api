@@ -22,11 +22,19 @@ export class ProjectsService {
         const method = `${this.contextClass} getAllProjects`;
         try {
             let projects = await this.uSql.makeQuery(`
-            SELECT  pro_code, pro_title, pro_descri, 
-                    TO_CHAR(pro_datins, 'DD Mon YYYY HH:mm PM') pro_datfor, 
-                    pro_datupd, pro_datins, pro_datstart, pro_datend,
-                    COALESCE(sch_projects.fun_get_project_users(pro_code), '[]') as pro_users 
-            FROM sch_projects.tb_project
+            SELECT  
+                project.pro_code, project.pro_title, project.pro_descri, 
+                TO_CHAR(project.pro_datins, 'DD Mon YYYY HH:mm PM') pro_datfor, 
+                project.pro_datupd, project.pro_datins, project.pro_datstart, project.pro_datend,
+                COALESCE(sch_projects.fun_get_project_users(project.pro_code), '[]') AS pro_users,
+                (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = project.pro_code AND item_type = 'Issue') AS issue_count,
+                (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = project.pro_code AND item_type = 'Ticket') AS ticket_count,
+                (SELECT COUNT(1) FROM sch_projects.tb_project_document WHERE pro_code = project.pro_code) AS docs_count,
+                ('Documents ' || (SELECT COUNT(1) FROM sch_projects.tb_project_document WHERE pro_code = project.pro_code) || 
+                '  Tickets ' || (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = project.pro_code AND item_type = 'Ticket') ||
+                '  Issues ' || (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = project.pro_code AND item_type = 'Issue')) AS counts_string
+            FROM 
+                sch_projects.tb_project project
             `, [])
 
             if (!projects.length) {

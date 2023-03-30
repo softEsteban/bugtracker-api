@@ -19,6 +19,12 @@ export class UsersController {
         return this.usersService.getAllUsers();
     }
 
+    @Get('/getAllDevelopersSelect')
+    @ApiOperation({ summary: 'Gets all developer users for a select component' })
+    async getAllDevelopersSelect() {
+        return this.usersService.getAllDevelopersSelect();
+    }
+
     @Post('/createUser')
     @ApiOperation({ summary: 'Creates a new user' })
     async createUser(@Body() createUser: CreateUser) {
