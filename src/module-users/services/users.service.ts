@@ -49,8 +49,8 @@ export class UsersService {
         }
     }
 
-    async getAllDevelopersSelect() {
-        const method = this.contextClass + "getAllDevelopersSelect";
+    async getDevelopersSelect() {
+        const method = this.contextClass + "getDevelopersSelect";
         try {
             let users = await this.uSql.makeQuery(`
             SELECT 
