@@ -44,6 +44,12 @@ export class UpdateUser {
     })
     use_type?: UserType;
 
+    @IsString()
+    @ApiProperty({
+        description: "The user's company",
+    })
+    cop_code?: string;
+
     @IsEnum(UserType)
     @IsOptional()
     @ApiProperty({

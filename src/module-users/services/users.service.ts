@@ -25,13 +25,15 @@ export class UsersService {
                     tuser.use_code, tuser.use_email, tuser.use_name, tuser.cop_code, 
                     tuser.pro_code, tuser.use_lastname, tuser.use_type, tuser.use_pic, tuser.use_github,
                     TO_CHAR(tuser.use_datins, 'DD Mon YYYY HH:mm PM') use_datfor,
-                    tuser.use_datins, tcop.cop_name, 
+                    tuser.use_datins, tcop.cop_name, tprof.pro_name,
                     COALESCE(sch_projects.fun_get_projects_by_user(tuser.use_code), '[]') AS use_projects
             FROM 
                     sch_generic.tb_user tuser,
-                    sch_domains.tb_company tcop
+                    sch_domains.tb_company tcop,
+                    sch_generic.tb_profile tprof
             WHERE   
-                    tuser.cop_code = tcop.cop_code
+                    tuser.cop_code = tcop.cop_code AND
+                    tuser.pro_code = tprof.pro_code
             ORDER BY 
                     use_datins DESC`, [])
 
@@ -168,6 +170,10 @@ export class UsersService {
             if (updateUser.pro_code) {
                 setClauses.push(`pro_code = $${setClauses.length + 1}`);
                 params.push(updateUser.pro_code);
+            }
+            if (updateUser.cop_code) {
+                setClauses.push(`cop_code = $${setClauses.length + 1}`);
+                params.push(updateUser.cop_code);
             }
             if (updateUser.use_github) {
                 setClauses.push(`use_github = $${setClauses.length + 1}`);
