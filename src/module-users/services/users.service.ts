@@ -197,4 +197,41 @@ export class UsersService {
             throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }
     }
+
+    async deleteUser(userId: number) {
+        const method = `${this.contextClass}.deleteUser`;
+
+        try {
+            // Check if user with given userId exists in the database
+            const existingUser = await this.uSql.makeQuery(
+                `SELECT use_code FROM sch_generic.tb_user WHERE use_code = $1`,
+                [userId]
+            );
+            if (existingUser.length === 0) {
+                throw new NotFoundException(`User with id ${userId} not found`);
+            }
+
+            // // Check if user has entities related to it
+            // const entities = await this.uSql.makeQuery(
+            //     `SELECT COUNT(*) FROM sch_generic.tb_entity WHERE use_code = $1`,
+            //     [userId]
+            // );
+            // if (entities[0].count > 0) {
+            //     throw new ConflictException(`User with id ${userId} cannot be deleted because it has related entities`);
+            // }
+
+            // Delete user record from the database
+            const query = `
+            DELETE FROM sch_generic.tb_user
+            WHERE use_code = $1
+        `;
+            const result = await this.uSql.makeQuery(query, [userId]);
+            const deletedUser = result[0];
+
+            return { result: "success", message: "User has been deleted!", data: deletedUser };
+        } catch (error) {
+            throw new InternalServerErrorException(`Error in ${method}: ${error}`);
+        }
+    }
+
 }
