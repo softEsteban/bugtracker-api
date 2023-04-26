@@ -38,7 +38,7 @@ export class UsersController {
     }
 
     @Delete('/deleteUser/:userId')
-    @ApiOperation({ summary: 'Deletes a user by ID' })
+    @ApiOperation({ summary: 'Deletes a user by user code' })
     async deleteUser(@Param('userId') userId: number) {
         return this.usersService.deleteUser(userId);
     }

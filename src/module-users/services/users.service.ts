@@ -4,7 +4,6 @@ import { CreateUser } from 'src/module-users/dtos/create.user.dto';
 import { USQL } from 'src/module-utilities/usql';
 import * as bcrypt from 'bcrypt';
 import { UpdateUser } from '../dtos/update.user.dto';
-import { create } from 'domain';
 
 
 @Injectable()
@@ -211,20 +210,20 @@ export class UsersService {
                 throw new NotFoundException(`User with id ${userId} not found`);
             }
 
-            // // Check if user has entities related to it
-            // const entities = await this.uSql.makeQuery(
-            //     `SELECT COUNT(*) FROM sch_generic.tb_entity WHERE use_code = $1`,
-            //     [userId]
-            // );
-            // if (entities[0].count > 0) {
-            //     throw new ConflictException(`User with id ${userId} cannot be deleted because it has related entities`);
-            // }
+            // Check if user has projects related to it
+            const projects = await this.uSql.makeQuery(
+                `SELECT COUNT(*) FROM sch_projects.tb_user_x_project WHERE use_code = $1`,
+                [userId]
+            );
+            if (projects[0].count > 0) {
+                return { result: "error", message: "User has projects related!", data: [] };
+            }
 
             // Delete user record from the database
             const query = `
             DELETE FROM sch_generic.tb_user
             WHERE use_code = $1
-        `;
+            `;
             const result = await this.uSql.makeQuery(query, [userId]);
             const deletedUser = result[0];
 
