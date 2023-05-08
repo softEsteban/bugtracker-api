@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ApiTags } from '@nestjs/swagger';
 import { ItemsService } from '../services/items.service';
+import { ItemCreate } from '../dtos/create.item.dto';
 // import { JwtAuthGuard } from '../../module-auth/jwt.auth.guard.service';
 
 // @UseGuards(JwtAuthGuard)
@@ -23,5 +24,10 @@ export class ItemsController {
         return this.itemsService.getAllIssuesByProject(projectId);
     }
 
+    @Post('/createItem')
+    @ApiOperation({ summary: 'Creates a new ticket or issue' })
+    async createItem(@Body() createItem: ItemCreate) {
+        return this.itemsService.createItem(createItem);
+    }
 
 }
