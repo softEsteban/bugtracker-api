@@ -22,6 +22,7 @@ export class ItemsService {
                 sch_projects.tb_item item
             WHERE 
                 item.item_type = 'Ticket' AND item.pro_code = $1
+            ORDER BY item.item_datins DESC
             `, [projectId])
 
             if (!tickets.length) {
@@ -45,6 +46,7 @@ export class ItemsService {
                 sch_projects.tb_item item
             WHERE 
                 item.item_type = 'Issue' AND item.pro_code = $1
+            ORDER BY item.item_datins DESC
             `, [projectId])
 
             if (!issues.length) {
