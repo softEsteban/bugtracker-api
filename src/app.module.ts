@@ -9,6 +9,7 @@ import { UtilitiesModule } from './module-utilities/utilities.module';
 import { AuthModule } from './module-auth/auth.module';
 import { DomainsModule } from './module-domains/domains.module';
 import { ProjectsModule } from './module-projects/projects.module';
+import { ChatgptModule } from './module-chatgpt/chatgpt.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { ProjectsModule } from './module-projects/projects.module';
     UtilitiesModule,
     AuthModule,
     DomainsModule,
-    ProjectsModule],
+    ProjectsModule,
+    ChatgptModule],
   controllers: [AppController],
   providers: [AppService],
 })

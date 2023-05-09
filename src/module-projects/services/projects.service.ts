@@ -1,12 +1,9 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { validate } from 'class-validator';
-import { USQL } from 'src/module-utilities/usql';
-import { ProjectCreate } from '../dtos/create.project.dto';
+import { USQL } from '../../module-utilities/usql';
+import { CreateProject } from '../dtos/create.project.dto';
+import { AddUsers } from '../dtos/add.users.dto';
 
-interface User {
-    use_code: string;
-    use_name: string;
-}
 
 @Injectable()
 export class ProjectsService {
@@ -49,7 +46,7 @@ export class ProjectsService {
         }
     }
 
-    async createProject(createProject: ProjectCreate) {
+    async createProject(createProject: CreateProject) {
         const method = `${this.contextClass} createProject`;
 
         try {
@@ -100,5 +97,31 @@ export class ProjectsService {
             throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }
     }
+
+    async addUsers(addUsers: AddUsers) {
+        const method = `${this.contextClass} addUsers`;
+        try {
+            //Adds users
+            let users = addUsers.pro_users as { use_code: string, use_name: string }[];
+            if (users.length > 0) {
+                let useCodes = users.map(user => user.use_code);
+                let useCodeString = useCodes.join(',');
+                const query2 = `
+                SELECT sch_projects.fun_add_users_to_project($1, $2) AS add_result;`;
+                const params2 = [useCodeString, addUsers.pro_code];
+                const result2 = await this.uSql.makeQuery(query2, params2);
+                if (!result2[0]["add_result"]) {
+                    return {
+                        result: 'fail',
+                        message: "Couldn't add the users",
+                    };
+                }
+            }
+            return { result: "success", message: "Users has been added", data: addUsers.pro_users as any };
+        } catch (error) {
+            throw new InternalServerErrorException(`Error in ${method}: ${error}`);
+        }
+    }
+
 
 }

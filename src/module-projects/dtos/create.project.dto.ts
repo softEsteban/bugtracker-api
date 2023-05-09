@@ -15,7 +15,7 @@ interface User {
     use_name: string;
 }
 
-export class ProjectCreate {
+export class CreateProject {
     @IsString()
     @IsNotEmpty()
     @ApiProperty({ description: "The projects's title" })
