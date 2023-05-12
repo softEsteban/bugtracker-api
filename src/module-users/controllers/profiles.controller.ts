@@ -1,10 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ApiTags } from '@nestjs/swagger';
 import { ProfilesService } from '../services/profiles.service';
-// import { JwtAuthGuard } from '../../module-auth/jwt.auth.guard.service';
+import { AuthGuard } from '@nestjs/passport';
 
-// @UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 @ApiTags('Profiles services')
 @Controller('profiles')
 export class ProfilesController {

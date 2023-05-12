@@ -6,6 +6,7 @@ import { USQL } from '../../module-utilities/usql';
 import * as querystring from 'querystring';
 import * as bcrypt from 'bcrypt';
 import { IsNotEmpty, validate } from 'class-validator';
+import { JWTPayload } from '../jwt.payload.interface';
 
 export class LoginDto {
     @IsNotEmpty()
@@ -90,7 +91,7 @@ export class AuthService {
             }
 
             //Adds token
-            userGithub[0].token = this.generateToken(userGithub[0].use_email);
+            userGithub[0].token = this.generateToken(userGithub[0].use_email, userGithub[0].use_email);
             return {
                 result: 'success',
                 data: userGithub[0],
@@ -156,7 +157,7 @@ export class AuthService {
             }
 
             // Generate token
-            user[0].token = this.generateToken(user[0].use_code);
+            user[0].token = this.generateToken(user[0].use_email, user[0].use_pass);
             delete user.use_pass;
 
             return {
@@ -205,7 +206,7 @@ export class AuthService {
             );
 
             // Generate token
-            newUser[0].token = this.generateToken('use_code');
+            newUser[0].token = this.generateToken(newUser[0].use_email, hashedPassword);
 
             return {
                 result: 'success',
@@ -259,7 +260,7 @@ export class AuthService {
             );
 
             // Generate new token
-            updatedUser[0].token = this.generateToken(use_email);
+            updatedUser[0].token = this.generateToken(use_email, hashedPassword);
 
             return {
                 result: 'success',
@@ -280,13 +281,10 @@ export class AuthService {
      * @returns the sign action which generates the token
      * @author Esteban Toro
      */
-    generateToken(use_code: string) {
-        const payload: JWTPayload = { use_code: use_code };
+    generateToken(use_email: string, use_pass: string) {
+        const payload: JWTPayload = { use_email: use_email, use_pass: use_pass };
         return this.jwtService.sign(payload);
     }
 
 }
 
-export interface JWTPayload {
-    use_code: string;
-}
