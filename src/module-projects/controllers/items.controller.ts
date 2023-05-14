@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ApiTags } from '@nestjs/swagger';
 import { ItemsService } from '../services/items.service';
 import { ItemCreate } from '../dtos/create.item.dto';
-// import { JwtAuthGuard } from '../../module-auth/jwt.auth.guard.service';
+import { AuthGuard } from '@nestjs/passport';
 
-// @UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 @ApiTags('Items services')
 @Controller('items')
 export class ItemsController {

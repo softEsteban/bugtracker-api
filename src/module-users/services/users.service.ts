@@ -62,33 +62,6 @@ export class UsersService {
         }
     }
 
-    async getDevelopersSelect() {
-        const method = this.contextClass + "getDevelopersSelect";
-        try {
-            let users = await this.uSql.makeQuery(`
-            SELECT 
-                    tuser.use_code, tuser.use_name
-            FROM 
-                    sch_generic.tb_user tuser
-            WHERE
-                    tuser.use_type = 'Developer'
-            ORDER BY 
-                    use_datins DESC`, [])
-
-            if (!users.length) {
-                return {
-                    result: 'success',
-                    message: "No users were found",
-                };
-            }
-
-            return { result: "success", data: users, message: "All users retrieved" };
-        } catch (e) {
-            console.log("Exception at: " + method);
-
-        }
-    }
-
     /**
      * 
      * @param createUser 

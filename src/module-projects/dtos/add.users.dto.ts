@@ -7,6 +7,11 @@ interface User {
 }
 
 export class AddUsers {
+    constructor(pro_code: string, pro_users: User[]) {
+        this.pro_code = pro_code;
+        this.pro_users = pro_users;
+    }
+
     @IsString()
     @IsNotEmpty()
     @ApiProperty({ description: "The projects's code" })

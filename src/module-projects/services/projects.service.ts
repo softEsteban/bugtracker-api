@@ -3,18 +3,25 @@ import { validate } from 'class-validator';
 import { USQL } from '../../module-utilities/usql';
 import { CreateProject } from '../dtos/create.project.dto';
 import { AddUsers } from '../dtos/add.users.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Project } from '../entities/project.entity';
 
 
 @Injectable()
 export class ProjectsService {
 
     constructor(
+        @InjectRepository(Project) private projectRepository: Repository<Project>,
         private uSql: USQL) {
 
     }
 
     contextClass = "ProjectsService - ";
 
+    /**
+     * 
+     */
     async getAllProjects() {
         const method = `${this.contextClass} getAllProjects`;
         try {
@@ -46,58 +53,55 @@ export class ProjectsService {
         }
     }
 
+    /**
+     * 
+     * @param createProject 
+     * @returns 
+     */
     async createProject(createProject: CreateProject) {
         const method = `${this.contextClass} createProject`;
 
         try {
-            // Perform input validation using class-validator decorators
+            // Performs input validation using class-validator decorators
             const errors = await validate(createProject);
             if (errors.length > 0) {
-                return { result: "success", message: "Some values are not correct or are missing", data: "" };
-            }
-
-            // Perform database insert and return created user
-            const query = `
-            INSERT INTO sch_projects.tb_project (pro_title, pro_descri, pro_status, pro_datins, pro_datupd, use_code, pro_datstart, pro_datend)
-            VALUES ($1, $2, $3, NOW(), NOW(), $4, $5, $6) RETURNING pro_code, pro_datins;`;
-            const params = [createProject.pro_title, createProject.pro_descri, createProject.pro_status,
-            createProject.use_code, createProject.pro_datstart, createProject.pro_datend];
-
-            const result = await this.uSql.makeQuery(query, params);
-            if (!result[0]) {
                 return {
-                    result: 'fail',
-                    message: "Couldn't create the project",
+                    result: 'success',
+                    message: 'Some values are not correct or are missing',
+                    data: '',
                 };
             }
-            const createdProject = result[0];
-            let project = { ...createProject, ...createdProject };
 
-            //Adds users
-            let users = createProject.pro_users as { use_code: string, use_name: string }[];
-            if (users.length > 0) {
-                let useCodes = users.map(user => user.use_code);
-                let useCodeString = useCodes.join(',');
+            // Creates a new project instance with the provided data
+            const project = this.projectRepository.create({
+                pro_title: createProject.pro_title,
+                pro_descri: createProject.pro_descri,
+                pro_status: createProject.pro_status,
+                pro_datins: new Date(),
+                pro_datupd: new Date(),
+                use_code: createProject.use_code,
+                pro_datstart: createProject.pro_datstart,
+                pro_datend: createProject.pro_datend
+            });
 
-                const query2 = `
-                SELECT sch_projects.fun_add_users_to_project($1, $2) AS add_result;`;
-                const params2 = [useCodeString, createdProject.pro_code];
-                const result2 = await this.uSql.makeQuery(query2, params2);
+            // Saves the project entity to the database
+            const createdProject = await this.projectRepository.save(project);
 
-                if (!result2[0]["add_result"]) {
-                    return {
-                        result: 'fail',
-                        message: "Couldn't add the users",
-                    };
-                }
-            }
+            // Adds users
+            const addUsers = new AddUsers(createdProject.pro_code.toString(), createProject.pro_users);
+            await this.addUsers(addUsers);
 
-            return { result: "success", message: "Project has been created", data: project };
+            return { result: 'success', message: 'Project has been created', data: createdProject };
         } catch (error) {
             throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }
     }
 
+    /**
+     * 
+     * @param addUsers 
+     * @returns 
+     */
     async addUsers(addUsers: AddUsers) {
         const method = `${this.contextClass} addUsers`;
         try {
@@ -122,6 +126,5 @@ export class ProjectsService {
             throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }
     }
-
 
 }

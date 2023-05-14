@@ -1,12 +1,12 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ApiTags } from '@nestjs/swagger';
 import { ProjectsService } from '../services/projects.service';
 import { AddUsers } from '../dtos/add.users.dto';
 import { CreateProject } from '../dtos/create.project.dto';
-// import { JwtAuthGuard } from '../../module-auth/jwt.auth.guard.service';
+import { AuthGuard } from '@nestjs/passport';
 
-// @UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 @ApiTags('Projects services')
 @Controller('projects')
 export class ProjectsController {
