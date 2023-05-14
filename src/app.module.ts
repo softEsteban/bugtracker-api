@@ -22,7 +22,11 @@ import { ChatgptModule } from './module-chatgpt/chatgpt.module';
         username: configService.get('DATABASE_USERNAME'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
+        entities: ['dist/**/*.entity{,ts,.js}'],
         autoLoadEntities: true,
+        synchronize: false,
+        retryDelay: 3000,
+        retryAttempts: 10
       }),
       inject: [ConfigService],
     }),

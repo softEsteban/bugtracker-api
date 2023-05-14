@@ -4,18 +4,30 @@ import { CreateUser } from 'src/module-users/dtos/create.user.dto';
 import { USQL } from 'src/module-utilities/usql';
 import * as bcrypt from 'bcrypt';
 import { UpdateUser } from '../dtos/update.user.dto';
+import User from '../entities/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import UserXProject from '../entities/user.x.project.entity';
+
 
 
 @Injectable()
 export class UsersService {
 
     constructor(
+        @InjectRepository(User) private userRepository: Repository<User>,
+        @InjectRepository(UserXProject) private userXProjectRepository: Repository<UserXProject>,
         private uSql: USQL) {
 
     }
 
     contextClass = "UsersService - ";
 
+
+    /**
+     * 
+     * @returns 
+     */
     async getAllUsers() {
         const method = this.contextClass + "getAllUsers";
         try {
@@ -77,50 +89,54 @@ export class UsersService {
         }
     }
 
+    /**
+     * 
+     * @param createUser 
+     * @returns 
+     */
     async createUser(createUser: CreateUser) {
         const method = `${this.contextClass}.createUser`;
 
         try {
-            // Perform input validation using class-validator decorators
+            // Performs input validation using class-validator decorators
             const errors = await validate(createUser);
             if (errors.length > 0) {
                 return { result: "success", message: "Some values are not correct or are missing", data: "" };
             }
 
-            // Check if user email or GitHub already exists in the database
-            const existingUserWithEmail = await this.uSql.makeQuery(
-                `SELECT use_code FROM sch_generic.tb_user WHERE use_email = $1`,
-                [createUser.use_email]
-            );
-
-            if (existingUserWithEmail.length > 0) {
+            // Checks if user email already exists in the database
+            const existingUserWithEmail = await this.userRepository.findOne({ where: { use_email: createUser.use_email } });
+            if (existingUserWithEmail) {
                 return { result: "success", message: "A user with this email already exists", data: "" };
             }
 
+            // Checks if Github user already exists in the database
             if (createUser.use_type == "Developer") {
-                const existingUserWithGitHub = await this.uSql.makeQuery(
-                    `SELECT use_code FROM sch_generic.tb_user WHERE use_github = $1`,
-                    [createUser.use_github]
-                );
-
-                if (existingUserWithGitHub.length > 0) {
+                const existingUserWithGitHub = await this.userRepository.findOne({ where: { use_github: createUser.use_github } });
+                if (existingUserWithGitHub) {
                     return { result: "success", message: "A user with this GitHub account already exists", data: "" };
                 }
             }
 
-            // Hash user password using bcrypt
+            // Hashes user password using bcrypt
             const hashedPassword = await bcrypt.hash(createUser.use_pass, 10);
 
-            // Perform database insert and return created user
-            const query = `
-            INSERT INTO sch_generic.tb_user (use_email, use_name, use_type, use_pass, use_github, use_datins, pro_code, cop_code) 
-            VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7) RETURNING use_code, use_email, use_name, use_type, use_github, pro_code, cop_code
-            `;
-            const params = [createUser.use_email, createUser.use_name, createUser.use_type, hashedPassword,
-            createUser.use_github, createUser.pro_code, createUser.cop_code];
+            // Creates a new user entity
+            const newUser = this.userRepository.create({
+                use_email: createUser.use_email,
+                use_name: createUser.use_name,
+                use_lastname: createUser.use_lastname,
+                use_type: createUser.use_type,
+                use_pass: hashedPassword,
+                use_github: createUser.use_github,
+                use_datins: new Date(),
+                use_datupd: new Date(),
+                pro_code: createUser.pro_code,
+                cop_code: createUser.cop_code,
+            });
 
-            const result = await this.uSql.makeQuery(query, params);
-            const createdUser = result[0];
+            // Saves the user entity to the database
+            const createdUser = await this.userRepository.save(newUser);
 
             return { result: "success", message: "User has been created", data: createdUser };
         } catch (error) {
@@ -128,68 +144,53 @@ export class UsersService {
         }
     }
 
+    /**
+     * 
+     * @param userId 
+     * @param updateUser 
+     * @returns 
+     */
     async updateUser(userId: number, updateUser: UpdateUser) {
         const method = `${this.contextClass}.updateUser`;
 
         try {
-            // Perform input validation using class-validator decorators
+            // Performs input validation using class-validator decorators
             const errors = await validate(updateUser);
             if (errors.length > 0) {
                 throw new BadRequestException(`Validation failed: ${errors}`);
             }
 
-            // Check if user with given userId exists in the database
-            const existingUser = await this.uSql.makeQuery(
-                `SELECT use_code FROM sch_generic.tb_user WHERE use_code = $1`,
-                [userId]
-            );
-            if (existingUser.length === 0) {
+            // Checks if user with given userId exists in the database
+            const existingUser = await this.userRepository.findOne({ where: { use_code: userId } });
+            if (!existingUser) {
                 throw new NotFoundException(`User with id ${userId} not found`);
             }
 
-            // Update user record in the database
-            const setClauses = [];
-            const params = [];
+            // Updates user record in the database
             if (updateUser.use_email) {
-                setClauses.push(`use_email = $${setClauses.length + 1}`);
-                params.push(updateUser.use_email);
+                existingUser.use_email = updateUser.use_email;
             }
             if (updateUser.use_name) {
-                setClauses.push(`use_name = $${setClauses.length + 1}`);
-                params.push(updateUser.use_name);
+                existingUser.use_name = updateUser.use_name;
             }
             if (updateUser.use_lastname) {
-                setClauses.push(`use_lastname = $${setClauses.length + 1}`);
-                params.push(updateUser.use_lastname);
+                existingUser.use_lastname = updateUser.use_lastname;
             }
             if (updateUser.use_type) {
-                setClauses.push(`use_type = $${setClauses.length + 1}`);
-                params.push(updateUser.use_type);
+                existingUser.use_type = updateUser.use_type;
             }
             if (updateUser.pro_code) {
-                setClauses.push(`pro_code = $${setClauses.length + 1}`);
-                params.push(updateUser.pro_code);
+                existingUser.pro_code = updateUser.pro_code;
             }
             if (updateUser.cop_code) {
-                setClauses.push(`cop_code = $${setClauses.length + 1}`);
-                params.push(updateUser.cop_code);
+                existingUser.cop_code = updateUser.cop_code;
             }
             if (updateUser.use_github) {
-                setClauses.push(`use_github = $${setClauses.length + 1}`);
-                params.push(updateUser.use_github);
+                existingUser.use_github = updateUser.use_github;
             }
-            if (setClauses.length === 0) {
-                throw new BadRequestException('At least one field to update must be provided');
-            }
-            params.push(userId);
-            const query = `
-                UPDATE sch_generic.tb_user
-                SET ${setClauses.join(', ')}, use_datupd = NOW()
-                WHERE use_code = $${params.length}
-                RETURNING use_code, use_email, use_name, use_lastname, use_type, pro_code, use_github
-            `;
-            const result = await this.uSql.makeQuery(query, params);
-            const updatedUser = result[0];
+            existingUser.use_datupd = new Date();
+
+            const updatedUser = await this.userRepository.save(existingUser);
 
             return { result: "success", message: "User has been updated!", data: updatedUser };
         } catch (error) {
@@ -197,40 +198,36 @@ export class UsersService {
         }
     }
 
+    /**
+     * 
+     * @param userId 
+     * @returns 
+     */
     async deleteUser(userId: number) {
         const method = `${this.contextClass}.deleteUser`;
 
         try {
-            // Check if user with given userId exists in the database
-            const existingUser = await this.uSql.makeQuery(
-                `SELECT use_code FROM sch_generic.tb_user WHERE use_code = $1`,
-                [userId]
-            );
-            if (existingUser.length === 0) {
+            // Checks if user with given userId exists in the database
+            const existingUser = await this.userRepository.findOne({ where: { use_code: userId } });
+            if (!existingUser) {
                 throw new NotFoundException(`User with id ${userId} not found`);
             }
 
-            // Check if user has projects related to it
-            const projects = await this.uSql.makeQuery(
-                `SELECT COUNT(*) FROM sch_projects.tb_user_x_project WHERE use_code = $1`,
-                [userId]
-            );
-            if (projects[0].count > 0) {
+            // Checks if user has projects related to it
+            const projectCount = await this.userXProjectRepository
+                .createQueryBuilder('userXProject')
+                .where('userXProject.use_code = :userId', { userId })
+                .getCount();
+            if (projectCount > 0) {
                 return { result: "error", message: "User has projects related!", data: [] };
             }
 
-            // Delete user record from the database
-            const query = `
-            DELETE FROM sch_generic.tb_user
-            WHERE use_code = $1
-            `;
-            const result = await this.uSql.makeQuery(query, [userId]);
-            const deletedUser = result[0];
+            // Deletes user record from the database
+            await this.userRepository.delete(userId);
 
-            return { result: "success", message: "User has been deleted!", data: deletedUser };
+            return { result: "success", message: "User has been deleted!", data: existingUser };
         } catch (error) {
             throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }
     }
-
 }
