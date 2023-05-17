@@ -31,11 +31,13 @@ export default class User {
     @Column()
     use_github: string;
 
-    @OneToOne(() => Profile)
-    @JoinColumn()
+    // @OneToOne(() => Profile)
+    // @JoinColumn()
+    @Column()
     pro_code: string;
 
-    @OneToOne(() => Company)
-    @JoinColumn()
+    // @OneToOne(() => Company)
+    // @JoinColumn()
+    @Column()
     cop_code: string;
 }
