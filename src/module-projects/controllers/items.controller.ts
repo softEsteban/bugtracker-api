@@ -12,6 +12,12 @@ export class ItemsController {
 
     constructor(private itemsService: ItemsService) { }
 
+    @Get('/getItemsCountByType')
+    @ApiOperation({ summary: 'Gets items count by type' })
+    async getItemsCountByType() {
+        return this.itemsService.getItemsCountByType();
+    }
+
     @Get('/getAllTicketsByProject/:projectId')
     @ApiOperation({ summary: 'Gets all tickets by project' })
     async getAllTicketsByProject(@Param('projectId') projectId: string) {

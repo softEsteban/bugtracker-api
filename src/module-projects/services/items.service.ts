@@ -13,6 +13,27 @@ export class ItemsService {
 
     contextClass = "ItemsService - ";
 
+    async getItemsCountByType() {
+        const method = `${this.contextClass} getItemsCountByType`;
+        try {
+            let itemsCount = await this.uSql.makeQuery(`
+                SELECT item_type, COUNT(*) item_count
+                FROM sch_projects.tb_item
+                GROUP BY item_type
+            `, [])
+
+            if (!itemsCount.length) {
+                return {
+                    result: 'success',
+                    message: "No items were found",
+                };
+            }
+            return { result: "success", data: itemsCount, message: "Items count retrieved" };
+        } catch (e) {
+            console.log("Exception at: " + method);
+        }
+    }
+
     async getAllTicketsByProject(projectId: string) {
         const method = `${this.contextClass} getAllTicketsByProject`;
         try {

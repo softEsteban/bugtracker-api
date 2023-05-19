@@ -55,9 +55,37 @@ export class ProjectsService {
 
     /**
      * 
+     */
+    async getProjectsCountByUsers() {
+        const method = `${this.contextClass} getProjectsCountByUsers`;
+        try {
+            let users = await this.uSql.makeQuery(`
+            SELECT tuser.use_code, tuser.use_name, COUNT(tusp.*) pro_count
+            FROM sch_generic.tb_user tuser
+            JOIN sch_projects.tb_user_x_project tusp ON tuser.use_code = tusp.use_code
+            JOIN sch_projects.tb_project tpro ON tusp.pro_code = tpro.pro_code
+            GROUP BY tuser.use_code, tuser.use_name
+            ORDER BY pro_count DESC;
+            `, [])
+
+            if (!users.length) {
+                return {
+                    result: 'success',
+                    message: "No projects count by users were found",
+                };
+            }
+            return { result: "success", data: users, message: "Projects count by users retrieved" };
+        } catch (e) {
+            console.log("Exception at: " + method);
+        }
+    }
+
+    /**
+     * 
      * @param createProject 
      * @returns 
      */
+
     async createProject(createProject: CreateProject) {
         const method = `${this.contextClass} createProject`;
 

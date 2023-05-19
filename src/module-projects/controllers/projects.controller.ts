@@ -6,7 +6,7 @@ import { AddUsers } from '../dtos/add.users.dto';
 import { CreateProject } from '../dtos/create.project.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @ApiTags('Projects services')
 @Controller('projects')
 export class ProjectsController {
@@ -17,6 +17,12 @@ export class ProjectsController {
     @ApiOperation({ summary: 'Gets all projects' })
     async getAllProjects() {
         return this.projectsService.getAllProjects();
+    }
+
+    @Get('/getProjectsCountByUsers')
+    @ApiOperation({ summary: 'Gets projects count by users' })
+    async getProjectsCountByUsers() {
+        return this.projectsService.getProjectsCountByUsers();
     }
 
     @Post('/createProject')
