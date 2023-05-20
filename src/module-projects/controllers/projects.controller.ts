@@ -25,6 +25,12 @@ export class ProjectsController {
         return this.projectsService.getProjectsCountByUsers();
     }
 
+    @Get('/getAdminDashboardCounts')
+    @ApiOperation({ summary: 'Gets admin dashboards counts' })
+    async getAdminDashboardCounts() {
+        return this.projectsService.getAdminDashboardCounts();
+    }
+
     @Post('/createProject')
     @ApiOperation({ summary: 'Creates a new project' })
     async createProject(@Body() createProject: CreateProject) {

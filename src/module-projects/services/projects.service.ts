@@ -82,6 +82,31 @@ export class ProjectsService {
 
     /**
      * 
+     */
+    async getAdminDashboardCounts() {
+        const method = `${this.contextClass} getAdminDashboardCounts`;
+        try {
+            let users = await this.uSql.makeQuery(`
+            SELECT
+                (SELECT COUNT(*) FROM sch_projects.tb_project) AS pro_count,
+                (SELECT COUNT(*) FROM sch_generic.tb_user WHERE use_type='Developer') AS dev_count,
+                (SELECT COUNT(*) FROM sch_generic.tb_user WHERE use_type='User') AS cli_count;
+            `, [])
+
+            if (!users.length) {
+                return {
+                    result: 'success',
+                    message: "No projects count by users were found",
+                };
+            }
+            return { result: "success", data: users, message: "Projects count by users retrieved" };
+        } catch (e) {
+            console.log("Exception at: " + method);
+        }
+    }
+
+    /**
+     * 
      * @param createProject 
      * @returns 
      */
