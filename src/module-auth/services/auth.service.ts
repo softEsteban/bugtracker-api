@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { URequest } from '../../module-utilities/urequest';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -7,6 +7,13 @@ import * as querystring from 'querystring';
 import * as bcrypt from 'bcrypt';
 import { IsNotEmpty, validate } from 'class-validator';
 import { JWTPayload } from '../jwt.payload.interface';
+import { UEmail } from 'src/module-utilities/uemail';
+import { RegisterUser } from '../dtos/register.user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import User from '../entities/user.entity';
+import { Repository } from 'typeorm';
+import { Response } from 'express';
+
 
 export class LoginDto {
     @IsNotEmpty()
@@ -20,9 +27,11 @@ export class LoginDto {
 export class AuthService {
 
     constructor(
+        @InjectRepository(User) private userRepository: Repository<User>,
         private configService: ConfigService,
         private uRequest: URequest,
         private uSql: USQL,
+        private uEmail: UEmail,
         private jwtService: JwtService) { }
 
     contextClass = "AuthService - ";
@@ -30,6 +39,8 @@ export class AuthService {
     //ENV variables
     client_id = this.configService.get<string>('CLIENT_ID');
     client_secret = this.configService.get<string>('CLIENT_SECRET');
+    confirm_url = this.configService.get<string>('CONFIRM_URL');
+    login_url = this.configService.get<string>('LOGIN_URL');
 
     /**
      * Gets the token for a user that has login with Github
@@ -102,22 +113,16 @@ export class AuthService {
         }
     }
 
-    async hashPassword(password: string): Promise<string> {
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-        return hash;
-    }
 
+    /**
+     * 
+     */
     async comparePassword(password: string, hash: string): Promise<boolean> {
         return bcrypt.compare(password, hash);
     }
 
     /**
-     * Logins 
-     * @param use_email user_email
-     * @param use_pass user password
-     * @returns The generated token
-     * @author Esteban Toro
+     * 
      */
     async login(loginDto: LoginDto) {
         const method = this.contextClass + 'login';
@@ -135,12 +140,13 @@ export class AuthService {
 
             // Get user by email
             const user = await this.uSql.makeQuery(
-                `SELECT tuser.use_code, tuser.use_name, tuser.use_lastname, 
-            tuser.use_type, tuser.use_github, tuser.use_email, tuser.use_pic, tuser.use_pass,
-            tpro.pro_config  
-            FROM sch_generic.tb_user tuser, sch_generic.tb_profile tpro
-            WHERE tuser.pro_code = tpro.pro_code 
-            AND use_email = $1`,
+                `   SELECT tuser.use_code, tuser.use_name, tuser.use_lastname, tuser.confirmed_email,
+                            tuser.use_type, tuser.use_github, tuser.use_email, tuser.use_pic, tuser.use_pass,
+                            tpro.pro_config  
+                    FROM sch_generic.tb_user tuser, 
+                         sch_generic.tb_profile tpro
+                    WHERE tuser.pro_code = tpro.pro_code 
+                          AND use_email = $1`,
                 [loginDto.use_email]
             );
             if (!user.length) {
@@ -148,6 +154,12 @@ export class AuthService {
                     result: 'success',
                     message: "The given user email doesn't exist",
                 };
+            }
+
+            // Verifies if email is confirmed 
+            if (user[0].confirmed_email == "unconfirmed") {
+                return { result: 'success', message: "User email hasn't been confirmed!" };
+
             }
 
             // Compare password
@@ -174,44 +186,54 @@ export class AuthService {
     }
 
     /**
-     * Registers a new user 
-     * @param 
-     * @returns The generated token
-     * @author Esteban Toro
+     * 
      */
-    async register(use_email: string, use_pass: string) {
+    async register(registerUser: RegisterUser) {
         const method = this.contextClass + 'register';
 
         try {
-            // Check if user already exists
-            const existingUser = await this.uSql.makeQuery(
-                `SELECT use_code, use_email, use_pass FROM sch_generic.tb_user WHERE use_email = $1`,
-                [use_email]
-            );
+            // Performs input validation using class-validator decorators
+            const errors = await validate(registerUser);
+            if (errors.length > 0) {
+                return { result: "success", message: "Some values are not correct or are missing", data: "" };
+            }
 
-            if (existingUser.length) {
-                return {
-                    result: 'success',
-                    message: 'User already exists',
-                };
+            // Checks if user email already exists in the database
+            const existingUserWithEmail = await this.userRepository.findOne({ where: { use_email: registerUser.use_email } });
+            if (existingUserWithEmail) {
+                return { result: "success", message: "A user with this email already exists", data: "" };
             }
 
             // Hash password
-            const hashedPassword = await bcrypt.hash(use_pass, 10);
+            const hashedPassword = await bcrypt.hash(registerUser.use_pass, 10);
 
-            // Insert new user into database
-            const newUser = await this.uSql.makeQuery(
-                `INSERT INTO sch_generic.tb_user (use_email, use_pass) VALUES ($1, $2) RETURNING use_code, use_email`,
-                [use_email, hashedPassword]
-            );
+            // Creates a new user entity
+            const newUser = this.userRepository.create({
+                use_email: registerUser.use_email,
+                use_pass: hashedPassword,
+                use_name: registerUser.use_name,
+                use_lastname: registerUser.use_lastname,
+                use_type: 'User',
+                use_datins: new Date(),
+                use_datupd: new Date(),
+                cop_code: registerUser.cop_code,
+                pro_code: '3',
+                confirmed_email: 'unconfirmed'
+            });
 
-            // Generate token
-            newUser[0].token = this.generateToken(newUser[0].use_email, hashedPassword);
+            // Saves the user entity to the database
+            const createdUser = await this.userRepository.save(newUser);
 
+            //Send confirm email
+            await this.uEmail.sendConfirmationEmail(registerUser.use_email, `${this.confirm_url}${(registerUser.use_email).replace("@", "%40")}`);
+
+            //Generate token
+            createdUser["token"] = this.generateToken(registerUser.use_email, hashedPassword);
+            delete createdUser.use_pass;
             return {
                 result: 'success',
-                data: newUser,
-                message: 'User has been registered',
+                data: createdUser,
+                message: 'User has been registered. Ready to be confirmed!',
             };
         } catch (error) {
             return {
@@ -222,11 +244,42 @@ export class AuthService {
     }
 
     /**
-     * Changes login password 
-     * @param 
-     * @returns The generated token
-     * @author Esteban Toro
+     * 
+     * @param use_email 
+     * @returns 
      */
+    async confirmAccount(use_email: string, response: Response) {
+        try {
+            // Checks if user with given use_email exists in the database
+            const existingUser = await this.userRepository.findOne({ where: { use_email: use_email } });
+            if (!existingUser) {
+                throw new NotFoundException(`User with email ${use_email} not found`);
+            }
+
+            //Sets to confirmed
+            existingUser.confirmed_email = 'confirmed';
+            await this.userRepository.save(existingUser);
+
+            //Returns HTML
+            response.send(`
+            <style>
+                h1 {
+                    font-family: Arial, Helvetica, sans-serif;
+                }
+                a {
+                    font-family: Verdana, Geneva, sans-serif;
+                }
+            </style>
+            <h1>User has confirmed!</h1>
+            <a href="${this.login_url}" target="_blank" >Login here</a>
+            `);
+        } catch (error) {
+            //Returns HTML
+            response.send('<h1>Internal server error</h1>');
+        }
+    }
+
+
     async changePassword(use_email: string, old_pass: string, new_pass: string) {
         const method = this.contextClass + 'changePassword';
 
@@ -275,12 +328,6 @@ export class AuthService {
         }
     }
 
-    /**
-     * Generates a JWT token if the user logs in
-     * @param use_code User id to pass as payload
-     * @returns the sign action which generates the token
-     * @author Esteban Toro
-     */
     generateToken(use_email: string, use_pass: string) {
         const payload: JWTPayload = { use_email: use_email, use_pass: use_pass };
         return this.jwtService.sign(payload);

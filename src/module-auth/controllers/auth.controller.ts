@@ -1,8 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService, LoginDto } from '../services/auth.service';
+import { RegisterUser } from '../dtos/register.user.dto';
+import { Response } from 'express';
+import { Res } from '@nestjs/common';
 
-@ApiTags('Login Service')
+
+@ApiTags('Authentication Service')
 @Controller('auth')
 export class AuthController {
 
@@ -23,10 +27,17 @@ export class AuthController {
     @Post('register')
     @ApiOperation({ summary: 'Registers a new user' })
     async register(
-        @Body('use_email') use_email: string,
-        @Body('use_pass') use_pass: string
+        @Body() registerUser: RegisterUser
     ) {
-        return this.authService.register(use_email, use_pass);
+        return this.authService.register(registerUser);
+    }
+
+    @Get('confirmAccount')
+    @ApiOperation({ summary: 'Confirms the email of a new user' })
+    async confirmAccount(
+        @Query('email') use_email: string, @Res() response: Response
+    ) {
+        return this.authService.confirmAccount(use_email, response);
     }
 
     @Put('changePassword')

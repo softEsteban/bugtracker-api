@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { CreateUser } from 'src/module-users/dtos/create.user.dto';
 import { USQL } from 'src/module-utilities/usql';
@@ -18,7 +18,6 @@ export class UsersService {
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(UserXProject) private userXProjectRepository: Repository<UserXProject>,
         private uSql: USQL) {
-
     }
 
     contextClass = "UsersService - ";
