@@ -1,6 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { MessageDto } from '../dtos/message.dto';
 
 @Injectable()
 export class ChatgptService {
@@ -12,7 +13,7 @@ export class ChatgptService {
 
     private readonly apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-    async sendMessage(message: string): Promise<string> {
+    async sendMessage(message: MessageDto): Promise<any> {
         try {
             const response = await axios.post(
                 this.apiUrl,
@@ -21,7 +22,7 @@ export class ChatgptService {
                     messages: [
                         {
                             role: 'user',
-                            content: message,
+                            content: message.message,
                         },
                     ],
                     temperature: 0.7,
@@ -34,7 +35,12 @@ export class ChatgptService {
                     },
                 },
             );
-            return response.data;
+
+
+            if (message.responseType == "complete")
+                return response.data;
+            else if (message.responseType == "message")
+                return { result: "success", data: response.data.choices[0].message.content, message: "Chat gpt response" };
         } catch (error: any) {
             throw new HttpException('Failed to generate text', error.response.status);
         }
