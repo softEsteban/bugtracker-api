@@ -26,7 +26,7 @@ export class ChatgptService {
                         },
                     ],
                     temperature: 0.7,
-                    max_tokens: 100,
+                    max_tokens: 1500,
                 },
                 {
                     headers: {

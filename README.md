@@ -1,73 +1,79 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Mantis - Bug Tracker API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The Bug Tracker API is a backend API service that provides functionality for managing bugs and issues in software projects. It serves as the backend for the Bug Tracker application, allowing the frontend to interact with the database and perform CRUD operations on projects, issues and tickets.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- Authentication: Handle user authentication and authorization for accessing and manipulating bug data.
+- Issues and Tickets Management: Create, retrieve, update, and delete records in the database.
+- User Management: Manage user accounts, including registration, login, and profile management.
+- Project Management: Associate bugs with specific projects and handle project-related operations.
+- API Endpoints: Expose RESTful API endpoints for interacting with bug and project data.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Technologies Used
+
+- Nestjs: A nodejs framework to build escalable APIS
+- PostgreSQL: A database to store data and logic schemas
+- Passport: A middleware for handling user authentication and authorization.
+- JWT: JSON Web Tokens for secure authentication and session management.
 
 ## Installation
 
-```bash
-$ npm install
-```
+1. Clone the repository: `git clone https://github.com/softEsteban/bugtracker-api.git`
+2. Navigate to the project directory: `cd bugtracker-api`
+3. Install the dependencies: `npm install` or `nest start`
 
-## Running the app
+## Configuration
 
-```bash
-# development
-$ npm run start
+1. Create a `.env` file in the root directory of the project.
+2. Define the following environment variables in the `.env` file:
+   #Github API
 
-# watch mode
-$ npm run start:dev
+   - `CLIENT_ID`=<client_id>
+   - `CLIENT_SECRET`=<client_secret>
 
-# production mode
-$ npm run start:prod
-```
+   #Chatgpt API
 
-## Test
+   - `CHAT_KEY`=<api_akey>
 
-```bash
-# unit tests
-$ npm run test
+   #Mailing and Gmail
 
-# e2e tests
-$ npm run test:e2e
+   - `EMAIL_USER`=<email>
+   - `EMAIL_PASS`=<password>
 
-# test coverage
-$ npm run test:cov
-```
+   - `CONFIRM_URL`="http://localhost:3000/auth/confirmAccount?email="
+   - `LOGIN_URL`="http://localhost:4200/login"
 
-## Support
+   #JWT
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+   - `JWT_SECRET_KEY`=<secret_key>
+   - `JWT_EXPIRATION`=1d
 
-## Stay in touch
+   #Database
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+   - `DATABASE_HOST`=<host>
+   - `DATABASE_PORT`=<port>
+   - `DATABASE_USERNAME`=<user>
+   - `DATABASE_PASSWORD`=<passwor>
+   - `DATABASE_NAME`=mantis
+
+## Usage
+
+1. Start the API server: `npm start`
+2. The API will be accessible at `http://localhost:<port>`, where `<port>` is the port number specified in the `.env` file.
+
+## API Documentation
+
+For detailed information about the available API endpoints and their usage, refer to the API documentation. [Link to API documentation goes here]
+
+## Contributing
+
+Contributions to the Bug Tracker API are welcome! If you encounter any bugs, have feature requests, or want to contribute enhancements, please feel free to submit issues and pull requests.
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+
+## Contact
+
+For any inquiries or questions, please contact [Your Name](mailto:your.email@example.com).
