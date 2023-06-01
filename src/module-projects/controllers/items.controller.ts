@@ -4,6 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { ItemsService } from '../services/items.service';
 import { ItemCreate } from '../dtos/create.item.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ItemDocumentCreate } from '../dtos/create.item.doc.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @ApiTags('Items services')
@@ -34,6 +35,12 @@ export class ItemsController {
     @ApiOperation({ summary: 'Creates a new ticket or issue' })
     async createItem(@Body() createItem: ItemCreate) {
         return this.itemsService.createItem(createItem);
+    }
+
+    @Post('/createItemDocument')
+    @ApiOperation({ summary: 'Creates a new ticket or issue' })
+    async createItemDocument(@Body() itemDoc: ItemDocumentCreate) {
+        return this.itemsService.createItemDocument(itemDoc);
     }
 
 }

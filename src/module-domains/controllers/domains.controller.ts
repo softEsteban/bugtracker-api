@@ -4,7 +4,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { DomainsService } from '../services/domains.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
 @ApiTags('Domains services')
 @Controller('domains')
 export class DomainsController {

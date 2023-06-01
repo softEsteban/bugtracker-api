@@ -2,11 +2,18 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { USQL } from 'src/module-utilities/usql';
 import { ItemCreate } from '../dtos/create.item.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ItemDocument } from '../entities/item.doc.entity';
+import { Item } from '../entities/item.entity';
+import { ItemDocumentCreate } from '../dtos/create.item.doc.dto';
 
 @Injectable()
 export class ItemsService {
 
     constructor(
+        @InjectRepository(ItemDocument) private itemDocRepository: Repository<ItemDocument>,
+        @InjectRepository(Item) private itemRepository: Repository<Item>,
         private uSql: USQL) {
 
     }
@@ -94,31 +101,27 @@ export class ItemsService {
                 };
             }
 
-            // Perform database insert and return created item
-            const query = `
-            INSERT INTO sch_projects.tb_item
-            (item_title, item_descri, item_type, item_status, item_file, item_datins, item_datupd, pro_code, use_code, coll_code)
-            VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), $6, $7, $8)
-            RETURNING item_title, item_descri, item_type, item_status, item_file, item_datins, item_datupd, pro_code, use_code, coll_code`;
-            const params = [
-                createItem.item_title,
-                createItem.item_descri,
-                createItem.item_type,
-                createItem.item_status,
-                createItem.item_file,
-                createItem.pro_code,
-                createItem.use_code,
-                createItem.coll_code,
-            ];
+            // Creates a new item instance with the provided data
+            const item = this.itemRepository.create({
+                item_title: createItem.item_title,
+                item_descri: createItem.item_descri,
+                item_status: createItem.item_status,
+                item_type: createItem.item_type,
+                item_datins: new Date(),
+                item_datupd: new Date(),
+                use_code: createItem.use_code,
+                pro_code: createItem.pro_code,
+                coll_code: createItem.coll_code,
+            });
 
-            const result = await this.uSql.makeQuery(query, params);
-            if (!result[0]) {
-                return {
-                    result: 'fail',
-                    message: "Couldn't create the item",
-                };
+            // Saves the item doc entity to the database
+            const createdItem = await this.itemRepository.save(item);
+
+            //Creates document
+            if (createItem.item_file) {
+                const newDoc = new ItemDocumentCreate("Public", createItem.item_file, createdItem.item_code.toString(), createItem.use_code, "", "")
+                await this.createItemDocument(newDoc);
             }
-            const createdItem = result[0];
 
             return {
                 result: 'success',
@@ -127,6 +130,42 @@ export class ItemsService {
             };
         } catch (error) {
             throw new InternalServerErrorException(`Error creating item: ${error}`);
+        }
+    }
+
+
+    async createItemDocument(createItemDoc: ItemDocumentCreate) {
+        const method = `${this.contextClass} createItemDocument`;
+
+        try {
+            // Performs input validation using class-validator decorators
+            const errors = await validate(createItemDoc);
+            if (errors.length > 0) {
+                return {
+                    result: 'success',
+                    message: 'Some values are not correct or are missing',
+                    data: '',
+                };
+            }
+
+            // Creates a new doc instance with the provided data
+            const doc = this.itemDocRepository.create({
+                doc_title: createItemDoc.doc_title || '',
+                doc_descri: createItemDoc.doc_descri || '',
+                doc_url: createItemDoc.doc_url,
+                doc_public: createItemDoc.doc_public || '',
+                doc_datins: new Date(),
+                doc_datupd: new Date(),
+                use_code: createItemDoc.use_code,
+                item_code: createItemDoc.item_code
+            });
+
+            // Saves the item doc entity to the database
+            const createdDoc = await this.itemDocRepository.save(doc);
+
+            return { result: 'success', message: 'Document has been created', data: createdDoc };
+        } catch (error) {
+            throw new InternalServerErrorException(`Error in ${method}: ${error}`);
         }
     }
 }
