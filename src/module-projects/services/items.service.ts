@@ -45,7 +45,11 @@ export class ItemsService {
         const method = `${this.contextClass} getAllTicketsByProject`;
         try {
             let tickets = await this.uSql.makeQuery(`
-            SELECT  *
+            SELECT  * , COALESCE((SELECT ARRAY_TO_JSON(ARRAY_AGG(rowt)) AS docs 
+                        FROM 
+                        (SELECT *
+                        FROM sch_projects.tb_item_document docs
+                        WHERE docs.item_code = item.item_code) AS rowt), '[]') AS item_docs
             FROM 
                 sch_projects.tb_item item
             WHERE 
@@ -69,7 +73,11 @@ export class ItemsService {
         const method = `${this.contextClass} getAllIssuesByProject`;
         try {
             let issues = await this.uSql.makeQuery(`
-            SELECT  *
+            SELECT  * , COALESCE((SELECT ARRAY_TO_JSON(ARRAY_AGG(rowt)) AS docs 
+                        FROM 
+                        (SELECT *
+                        FROM sch_projects.tb_item_document docs
+                        WHERE docs.item_code = item.item_code) AS rowt), '[]') AS item_docs
             FROM 
                 sch_projects.tb_item item
             WHERE 
@@ -132,7 +140,6 @@ export class ItemsService {
             throw new InternalServerErrorException(`Error creating item: ${error}`);
         }
     }
-
 
     async createItemDocument(createItemDoc: ItemDocumentCreate) {
         const method = `${this.contextClass} createItemDocument`;
