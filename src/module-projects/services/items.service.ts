@@ -1,12 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { USQL } from 'src/module-utilities/usql';
-import { ItemCreate } from '../dtos/create.item.dto';
+import { CreateItem } from '../dtos/create.item.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ItemDocument } from '../entities/item.doc.entity';
 import { Item } from '../entities/item.entity';
-import { ItemDocumentCreate } from '../dtos/create.item.doc.dto';
+import { CreateItemDoc } from '../dtos/create.item.doc.dto';
 
 @Injectable()
 export class ItemsService {
@@ -97,7 +97,7 @@ export class ItemsService {
         }
     }
 
-    async createItem(createItem: ItemCreate) {
+    async createItem(createItem: CreateItem) {
         try {
             // Perform input validation using class-validator decorators
             const errors = await validate(createItem);
@@ -125,11 +125,22 @@ export class ItemsService {
             // Saves the item doc entity to the database
             const createdItem = await this.itemRepository.save(item);
 
-            //Creates document
-            if (createItem.item_file) {
-                const newDoc = new ItemDocumentCreate("Public", createItem.item_file, createdItem.item_code.toString(), createItem.use_code, "", "")
-                await this.createItemDocument(newDoc);
+            // Creates documents
+            if (createItem.item_files.length > 0) {
+                for (const file of createItem.item_files) {
+                    const newDoc = new CreateItemDoc(
+                        "Public",
+                        file.doc_url,
+                        file.doc_type,
+                        createdItem.item_code.toString(),
+                        createItem.use_code,
+                        "",
+                        ""
+                    );
+                    await this.createItemDocument(newDoc);
+                }
             }
+
 
             return {
                 result: 'success',
@@ -141,7 +152,7 @@ export class ItemsService {
         }
     }
 
-    async createItemDocument(createItemDoc: ItemDocumentCreate) {
+    async createItemDocument(createItemDoc: CreateItemDoc) {
         const method = `${this.contextClass} createItemDocument`;
 
         try {
@@ -161,6 +172,7 @@ export class ItemsService {
                 doc_descri: createItemDoc.doc_descri || '',
                 doc_url: createItemDoc.doc_url,
                 doc_public: createItemDoc.doc_public || '',
+                doc_type: createItemDoc.doc_type || '',
                 doc_datins: new Date(),
                 doc_datupd: new Date(),
                 use_code: createItemDoc.use_code,

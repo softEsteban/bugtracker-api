@@ -1,12 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
+import { CreateItemDoc } from "./create.item.doc.dto";
 
 enum ItemType {
     TICKET = "Ticket",
     ISSUE = "Issue",
 }
 
-export class ItemCreate {
+export class CreateItem {
     @IsString()
     @IsNotEmpty()
     @ApiProperty({ description: "The item's title" })
@@ -31,8 +32,8 @@ export class ItemCreate {
     item_status: string;
 
     @IsString()
-    @ApiProperty({ description: "The item's file" })
-    item_file: string;
+    @ApiProperty({ description: "The item's files list", example: [{ doc_url: "string", doc_type: "string" }] })
+    item_files: CreateItemDoc[];
 
     @IsString()
     @IsNotEmpty()

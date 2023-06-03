@@ -2,11 +2,11 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ApiTags } from '@nestjs/swagger';
 import { ItemsService } from '../services/items.service';
-import { ItemCreate } from '../dtos/create.item.dto';
+import { CreateItem } from '../dtos/create.item.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ItemDocumentCreate } from '../dtos/create.item.doc.dto';
+import { CreateItemDoc } from '../dtos/create.item.doc.dto';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @ApiTags('Items services')
 @Controller('items')
 export class ItemsController {
@@ -33,14 +33,14 @@ export class ItemsController {
 
     @Post('/createItem')
     @ApiOperation({ summary: 'Creates a new ticket or issue' })
-    async createItem(@Body() createItem: ItemCreate) {
+    async createItem(@Body() createItem: CreateItem) {
         return this.itemsService.createItem(createItem);
     }
 
     @Post('/createItemDocument')
     @ApiOperation({ summary: 'Creates a new ticket or issue' })
-    async createItemDocument(@Body() itemDoc: ItemDocumentCreate) {
-        return this.itemsService.createItemDocument(itemDoc);
+    async createItemDocument(@Body() createItemDoc: CreateItemDoc) {
+        return this.itemsService.createItemDocument(createItemDoc);
     }
 
 }

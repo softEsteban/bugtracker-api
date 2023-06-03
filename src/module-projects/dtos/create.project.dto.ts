@@ -45,7 +45,7 @@ export class CreateProject {
 
     @IsArray()
     @IsNotEmpty()
-    @ApiProperty({ description: "The projects's users array", example: [{ use_code: "string", use_name: "string" }], })
+    @ApiProperty({ description: "The projects's users array", example: [{ use_code: "string", use_name: "string" }] })
     pro_users: User[];
 
     @IsString()
