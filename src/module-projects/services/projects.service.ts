@@ -53,6 +53,34 @@ export class ProjectsService {
         }
     }
 
+    async getProjectsByUser(userId: string) {
+        const method = `${this.contextClass} getProjectsByUser`;
+        try {
+            let projects = await this.uSql.makeQuery(`
+            SELECT  Projects.pro_code, Projects.pro_title, Projects.pro_status,
+                    Projects.pro_datins,
+                    CASE 
+                    WHEN Projects.use_code = UserPro.use_code THEN 'Creator'
+                    ELSE 'Guest' END use_type
+            FROM sch_projects.tb_user_x_project UserPro
+            JOIN sch_projects.tb_project Projects
+            ON UserPro.pro_code = Projects.pro_code
+            WHERE UserPro.use_code = $1
+            `, [userId])
+
+            if (!projects.length) {
+                return {
+                    result: 'success',
+                    message: "No projects were found",
+                };
+            }
+            return { result: "success", data: projects, message: "All projects retrieved by user" };
+        } catch (e) {
+            console.log("Exception at: " + method + e);
+        }
+    }
+
+
     /**
      * 
      */

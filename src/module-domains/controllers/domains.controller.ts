@@ -16,9 +16,9 @@ export class DomainsController {
         return this.domainsService.getAllCompanies();
     }
 
-    @Get('/getDevelopersSelect')
+    @Get('/getUsersSelect')
     @ApiOperation({ summary: 'Gets all developers' })
-    async getDevelopersSelect() {
-        return this.domainsService.getDevelopersSelect();
+    async getUsersSelect() {
+        return this.domainsService.getUsersSelect();
     }
 }

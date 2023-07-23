@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Param } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ApiTags } from '@nestjs/swagger';
 import { ProjectsService } from '../services/projects.service';
@@ -17,6 +17,12 @@ export class ProjectsController {
     @ApiOperation({ summary: 'Gets all projects' })
     async getAllProjects() {
         return this.projectsService.getAllProjects();
+    }
+
+    @Get('/getProjectsByUser/:userId')
+    @ApiOperation({ summary: 'Gets projects by user' })
+    async getProjectsByUser(@Param('userId') userId: string) {
+        return this.projectsService.getProjectsByUser(userId);
     }
 
     @Get('/getProjectsCountByUsers')

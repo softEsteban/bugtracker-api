@@ -29,18 +29,14 @@ export class DomainsService {
         }
     }
 
-    async getDevelopersSelect() {
-        const method = this.contextClass + "getDevelopersSelect";
+    async getUsersSelect() {
+        const method = this.contextClass + "getUsersSelect";
         try {
             let users = await this.uSql.makeQuery(`
-            SELECT 
-                    tuser.use_code, tuser.use_name
-            FROM 
-                    sch_generic.tb_user tuser
-            WHERE
-                    tuser.use_type = 'Developer'
-            ORDER BY 
-                    use_datins DESC`, [])
+            SELECT Users.use_code, Users.use_name, Users.use_type
+            FROM sch_generic.tb_user Users
+            WHERE Users.use_type <> 'Admin'
+            ORDER BY use_datins DESC`, [])
 
             if (!users.length) {
                 return {
