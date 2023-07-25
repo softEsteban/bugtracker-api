@@ -57,21 +57,27 @@ export class ProjectsService {
         const method = `${this.contextClass} getProjectsByUser`;
         try {
             let projects = await this.uSql.makeQuery(`
-            SELECT  Projects.pro_code, Projects.pro_title, Projects.pro_status,
-                    Projects.pro_datins,
-                    CASE 
-                    WHEN Projects.use_code = UserPro.use_code THEN 'Creator'
-                    ELSE 'Guest' END use_type
-            FROM sch_projects.tb_user_x_project UserPro
-            JOIN sch_projects.tb_project Projects
-            ON UserPro.pro_code = Projects.pro_code
-            WHERE UserPro.use_code = $1
+            SELECT  
+                Projects.pro_code, Projects.pro_title, Projects.pro_descri, 
+                TO_CHAR(Projects.pro_datins, 'DD Mon YYYY HH:mm PM') pro_datfor, 
+                Projects.pro_datupd, Projects.pro_datins, Projects.pro_datstart, Projects.pro_datend,
+                COALESCE(sch_projects.fun_get_project_users(Projects.pro_code), '[]') AS pro_users,
+                (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = Projects.pro_code AND item_type = 'Issue') AS issue_count,
+                (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = Projects.pro_code AND item_type = 'Ticket') AS ticket_count,
+                (SELECT COUNT(1) FROM sch_projects.tb_project_document WHERE pro_code = Projects.pro_code) AS docs_count,
+                ('Documents ' || (SELECT COUNT(1) FROM sch_projects.tb_project_document WHERE pro_code = Projects.pro_code) || 
+                '  Tickets ' || (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = Projects.pro_code AND item_type = 'Ticket') ||
+                '  Issues ' || (SELECT COUNT(1) FROM sch_projects.tb_item WHERE pro_code = Projects.pro_code AND item_type = 'Issue')) AS counts_string
+            FROM sch_projects.tb_project Projects,
+                sch_projects.tb_user_x_project TUserP
+            WHERE TUserP.pro_code = Projects.pro_code
+            AND TUserP.use_code = $1
             `, [userId])
 
             if (!projects.length) {
                 return {
                     result: 'success',
-                    message: "No projects were found",
+                    message: "No projects were found for user",
                 };
             }
             return { result: "success", data: projects, message: "All projects retrieved by user" };
